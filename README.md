@@ -35,8 +35,6 @@ The results are deployed as a web app using **Flask**, where users can:
 
 ---
 
----
-
 ## ⚙️ Installation
 1. Clone the repository:
    ```bash
