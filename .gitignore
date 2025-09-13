@@ -1,0 +1,28 @@
+# Bỏ môi trường ảo
+venv/
+.env/
+.env.bak/
+.venv/
+env/
+
+# Bỏ file hệ thống
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Bỏ file log
+*.log
+
+# Bỏ config IDE
+.vscode/
+.idea/
+
+# Bỏ file tạm
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+
+# Bỏ Jupyter notebook checkpoints
+.ipynb_checkpoints

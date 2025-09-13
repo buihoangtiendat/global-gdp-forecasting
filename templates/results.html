@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả Dự báo GDP cho {{ country }}</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 900px; margin: auto;}
+        h1, h2 { color: #333; }
+        h1 { text-align: center; border-bottom: 2px solid #007bff; padding-bottom:10px; margin-bottom:20px;}
+        h2 { color: #0056b3; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
+        .results-section { margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        .plot-image { max-width: 100%; height: auto; display: block; margin: 20px auto; border: 1px solid #ddd; border-radius:4px;}
+        .error { color: red; font-weight: bold; padding: 10px; background-color: #ffe0e0; border: 1px solid red; border-radius: 4px; }
+        a.back-link { 
+            display: inline-block; background-color: #6c757d; color: white; 
+            padding: 8px 15px; border-radius: 4px; text-decoration: none; margin-bottom: 20px;
+        }
+        a.back-link:hover { background-color: #5a6268; }
+        .params-info { background-color: #e9ecef; padding: 15px; border-radius: 4px; margin-bottom:20px; border: 1px solid #ced4da;}
+        .params-info p { margin: 8px 0; font-size: 0.95em; }
+        .params-info strong { color: #495057; }
+        .metrics-container { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+        .metrics-box { flex: 1; min-width: 300px; background-color: #fff; padding:15px; border-radius:4px; border:1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
+        .metrics-box h3 { margin-top:0; color:#007bff; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">« Quay lại trang chọn</a>
+        <h1>Kết quả Dự báo GDP</h1>
+
+        <div class="params-info">
+            <p><strong>Quốc gia:</strong> {{ country }}</p>
+            <p><strong>Mô hình:</strong> {{ model_name }}</p>
+            <p><strong>Năm huấn luyện:</strong> Đến {{ train_end_year }}</p>
+            {% if results.test_years_range.start <= results.test_years_range.end %}
+            <p><strong>Năm kiểm tra (Test):</strong> {{ results.test_years_range.start }} - {{ results.test_years_range.end }}</p>
+            {% else %}
+            <p><strong>Năm kiểm tra (Test):</strong> <i>Không có tập test lịch sử (chỉ dự đoán tương lai).</i></p>
+            {% endif %}
+            <p><strong>Số năm dự đoán thêm:</strong> {{ num_future_years_val if num_future_years_val is not none else '0' }}</p>
+            {% if model_specific_params_display %}
+                <p><strong>Tham số mô hình đã sử dụng:</strong></p>
+                <ul style="list-style-type: none; padding-left:0;">
+                {% for key, value in model_specific_params_display.items() %}
+                    <li style="font-size:0.9em;"><i>{{ key }}:</i> {{ value }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+
+        {% if results.error_message %}
+            <div class="results-section">
+                <h2>Lỗi</h2>
+                <p class="error">{{ results.error_message }}</p>
+            </div>
+        {% else %}
+            <div class="results-section">
+                <h2>Đồ thị Dự báo</h2>
+                {% if results.plot_base64 %}
+                    <img src="{{ results.plot_base64 }}" alt="Đồ thị dự báo GDP" class="plot-image">
+                {% else %}
+                    <p>Không thể tạo đồ thị. Có thể do thiếu dữ liệu hoặc lỗi trong quá trình vẽ.</p>
+                {% endif %}
+            </div>
+            
+            <div class="metrics-container">
+                <div class="metrics-box">
+                    <h3>Chỉ số Hiệu suất (Tập Huấn luyện)</h3>
+                    {% if results.metrics and results.metrics.train %}
+                        <table>
+                            <tr><th>Chỉ số</th><th>Giá trị</th></tr>
+                            <tr><td>R2 Score</td><td>{{ results.metrics.train.r2 }}</td></tr>
+                            <tr><td>Mean Squared Error (MSE)</td><td>{{ results.metrics.train.mse }}</td></tr>
+                            <tr><td>Mean Absolute Error (MAE)</td><td>{{ results.metrics.train.mae }}</td></tr>
+                            <tr><td>Mean Absolute Pct Error (MAPE)</td><td>{{ results.metrics.train.mape }}</td></tr>
+                        </table>
+                    {% else %}
+                        <p>Không có thông tin hiệu suất tập huấn luyện.</p>
+                    {% endif %}
+                </div>
+
+                {% if results.test_years_range.start <= results.test_years_range.end and results.metrics and results.metrics.test and results.metrics.test.r2 != "N/A" %}
+                <div class="metrics-box">
+                    <h3>Chỉ số Hiệu suất (Tập Kiểm tra {{ results.test_years_range.start }} - {{ results.test_years_range.end }})</h3>
+                        <table>
+                            <tr><th>Chỉ số</th><th>Giá trị</th></tr>
+                            <tr><td>R2 Score</td><td>{{ results.metrics.test.r2 }}</td></tr>
+                            <tr><td>Mean Squared Error (MSE)</td><td>{{ results.metrics.test.mse }}</td></tr>
+                            <tr><td>Mean Absolute Error (MAE)</td><td>{{ results.metrics.test.mae }}</td></tr>
+                            <tr><td>Mean Absolute Pct Error (MAPE)</td><td>{{ results.metrics.test.mape }}</td></tr>
+                        </table>
+                        
+                        {% if results.metrics.test.details %}
+                            <h4 style="margin-top:15px; margin-bottom:5px; color:#0056b3;">Chi tiết dự đoán trên tập kiểm tra:</h4>
+                            <div style="max-height: 200px; overflow-y: auto;">
+                                <table>
+                                    <thead><tr><th>Năm</th><th>GDP Thực tế</th><th>GDP Dự đoán</th></tr></thead>
+                                    <tbody>
+                                    {% for detail in results.metrics.test.details %}
+                                    <tr>
+                                        <td>{{ detail.year }}</td>
+                                        <td>{{ detail.actual }}</td>
+                                        <td>{{ detail.predicted }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            {% if results.future_predictions_data %}
+            <div class="results-section">
+                <h2>Dự báo cho các năm tương lai</h2>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table>
+                        <thead><tr><th>Năm</th><th>GDP Dự đoán</th></tr></thead>
+                        <tbody>
+                        {% for fut_pred in results.future_predictions_data %}
+                        <tr>
+                            <td>{{ fut_pred.year }}</td>
+                            <td>{{ fut_pred.predicted_gdp }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="results-section">
+                <h2>Thông số Mô hình (Sau khi huấn luyện)</h2>
+                {% if results.model_params_info and results.model_params_info.details %}
+                    <p><strong>Loại mô hình:</strong> {{ results.model_params_info.type }}</p>
+                    <table>
+                        <tr><th>Tham số</th><th>Giá trị</th></tr>
+                        {% for key, value in results.model_params_info.details.items() %}
+                        <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                {% else %}
+                    <p>Không có thông tin tham số mô hình chi tiết.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
