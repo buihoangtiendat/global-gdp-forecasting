@@ -36,6 +36,14 @@ The results are deployed as a web app using **Flask**, where users can:
 
 ---
 
+---
+
+## ⚙️ Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/global-gdp-forecasting.git
+   cd global-gdp-forecasting
+````
 
 2. Create a virtual environment:
 
@@ -56,10 +64,12 @@ The results are deployed as a web app using **Flask**, where users can:
 ## ▶️ Running the Flask App
 
 ```bash
-cd app
 python app.py
 ```
 
 Then open your browser at: **[http://127.0.0.1:5000/](http://127.0.0.1:5000/)**
+
+---
+
 
 ---
