@@ -40,8 +40,7 @@ The results are deployed as a web app using **Flask**, where users can:
    ```bash
    git clone https://github.com/your-username/global-gdp-forecasting.git
    cd global-gdp-forecasting
-````
-
+   ```
 2. Create a virtual environment:
 
    ```bash
