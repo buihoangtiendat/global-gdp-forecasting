@@ -1,4 +1,3 @@
-```markdown
 # Global GDP Forecasting
 
 This is the final project for the **Decision Support Systems** course.  
@@ -72,4 +71,3 @@ Then open your browser at: **[http://127.0.0.1:5000/](http://127.0.0.1:5000/)**
 ---
 
 
----
